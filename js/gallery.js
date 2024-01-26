@@ -66,6 +66,9 @@ const images = [
 
 const gallery = document.querySelector(".gallery");
 
+// Глобальний об'єкт для зберігання активного модального вікна
+let activeLightboxInstance;
+
 function createGalleryItem({ preview, original, description }) {
   const galleryItem = document.createElement("li");
   galleryItem.classList.add("gallery-item");
@@ -90,20 +93,38 @@ function createGalleryItem({ preview, original, description }) {
 }
 
 function openModal(src, description) {
-  const instance = basicLightbox.create(`
-        <img src="${src}" alt="${description}" width="800" height="600">
-    `);
-  instance.show();
+  // Закриваємо попереднє модальне вікно, якщо воно вже відкрите
+  if (activeLightboxInstance) {
+    activeLightboxInstance.close();
+  }
 
-  // Закриття модального вікна
-  const closeModal = (event) => {
-    if (event.key === "Escape") {
-      instance.close();
-      window.removeEventListener("keydown", closeModal);
+  const instance = basicLightbox.create(
+    `<img src="${src}" alt="${description}" width="800" height="600">`,
+    {
+      onShow: (instance) => {
+        // Зберігаємо посилання на активне модальне вікно
+        activeLightboxInstance = instance;
+
+        // Додавання слухача клавіатури при відкритті модального вікна
+        window.addEventListener("keydown", closeModalOnEsc);
+        instance.element().addEventListener("click", instance.close); // Закриття при кліку поза вікном
+      },
+      onClose: () => {
+        // Зняття слухача клавіатури при закритті модального вікна
+        window.removeEventListener("keydown", closeModalOnEsc);
+
+        // Знульовуємо посилання на активне модальне вікно
+        activeLightboxInstance = null;
+      },
     }
-  };
+  );
+  instance.show();
+}
 
-  window.addEventListener("keydown", closeModal);
+function closeModalOnEsc(event) {
+  if (event.key === "Escape" && activeLightboxInstance) {
+    activeLightboxInstance.close();
+  }
 }
 
 gallery.addEventListener("click", (event) => {
@@ -123,3 +144,4 @@ function renderGallery() {
 }
 
 document.addEventListener("DOMContentLoaded", renderGallery);
+
