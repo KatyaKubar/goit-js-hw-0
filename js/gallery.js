@@ -63,6 +63,7 @@ const images = [
     description: "Lighthouse Coast Sea",
   },
 ];
+
 const gallery = document.querySelector(".gallery");
 
 function createGalleryItem({ preview, original, description }) {
@@ -75,9 +76,12 @@ function createGalleryItem({ preview, original, description }) {
 
   const galleryImage = document.createElement("img");
   galleryImage.classList.add("gallery-image");
+
+  const descriptionTextNode = document.createTextNode(description);
+  galleryImage.alt = descriptionTextNode.nodeValue;
+
   galleryImage.src = preview;
   galleryImage.dataset.source = original;
-  galleryImage.alt = description;
 
   galleryLink.appendChild(galleryImage);
   galleryItem.appendChild(galleryLink);
@@ -85,10 +89,10 @@ function createGalleryItem({ preview, original, description }) {
   return galleryItem;
 }
 
-function openModal(src) {
+function openModal(src, description) {
   const instance = basicLightbox.create(`
-    <img src="${src}" width="800" height="600">
-  `);
+        <img src="${src}" alt="${description}" width="800" height="600">
+    `);
   instance.show();
 
   // Закриття модального вікна
@@ -106,10 +110,11 @@ gallery.addEventListener("click", (event) => {
   event.preventDefault();
 
   const target = event.target;
-  if (target.nodeName !== "IMG") return;
+  if (target.tagName.toLowerCase() !== "img") return;
 
   const largeImageSource = target.dataset.source;
-  openModal(largeImageSource);
+  const imageDescription = target.alt;
+  openModal(largeImageSource, imageDescription);
 });
 
 function renderGallery() {
@@ -118,5 +123,3 @@ function renderGallery() {
 }
 
 document.addEventListener("DOMContentLoaded", renderGallery);
-
-
